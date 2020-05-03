@@ -1,5 +1,12 @@
 #include <Windows.h>
 
+#define internal static
+#define global_variable static
+#define local_persist static
+
+// TODO: Need to make this non-global later
+global_variable bool Running;
+
 LRESULT CALLBACK
 MainWindowCallback(HWND Window,
                    UINT Message,
@@ -20,11 +27,11 @@ MainWindowCallback(HWND Window,
         } break;
         case WM_CLOSE:
         {
-            OutputDebugStringA("WM_CLOSE");
+            Running = false;
         } break;
         case WM_ACTIVATEAPP:
         {
-            OutputDebugStringA("WM_ACTIVATEAPP");
+            Running = false; 
         } break;
         case WM_PAINT:
         {
@@ -79,7 +86,8 @@ WinMain(HINSTANCE Instance,
 
        if (WindowHandle)
        {
-           for (;;)
+           Running = true;
+           while (Running)
            {
                MSG Message;
                BOOL MessageResult = GetMessageA(&Message, 0, 0, 0);
