@@ -17,24 +17,6 @@ internal void HandleEvent(SDL_Event *event)
             Global_Running = 0;
         } break;
 
-        case SDL_KEYUP:
-        case SDL_KEYDOWN:
-        {
-            if (event->key.repeat == 0)
-            {
-                switch (event->key.keysym.scancode)
-                {
-                    case SDL_SCANCODE_SPACE:
-                    {
-                    } break;
-
-                    case SDL_SCANCODE_ESCAPE:
-                    {
-                    } break;
-                }
-           }
-        } break;
-
         case SDL_MOUSEBUTTONDOWN:
         {
             Global_State.input.mouse_down = 
@@ -83,7 +65,7 @@ int main(int argc, char** argv)
                     HandleEvent(&event);
                 }
 
-                UpdateApp(renderer);
+                UpdateApp(renderer, &Global_State);
             }
         }
         else

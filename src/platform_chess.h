@@ -40,6 +40,8 @@ typedef enum turn
 
 typedef enum pieces
 {
+    PIECE_none, 
+
     // white pieces
     PIECE_white_pawn, 
     PIECE_white_knight, 
@@ -55,6 +57,8 @@ typedef enum pieces
     PIECE_black_rook, 
     PIECE_black_queen, 
     PIECE_black_king, 
+
+    PIECE_max
 } pieces;
 
 typedef struct mouse_state
@@ -66,10 +70,11 @@ typedef struct mouse_state
 
 typedef struct game_state
 {
-    pieces board[BOARD_SIZE];
+    pieces board[BOARD_WIDTH][BOARD_HEIGHT];
     b32 board_initialized;
     turn current_turn; 
     mouse_state input;
+    SDL_Texture *textures[PIECE_max];
 } game_state;
 
 #endif
