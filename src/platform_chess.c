@@ -27,6 +27,8 @@ internal void HandleEvent(SDL_Event *event)
         {
             Global_State.input.mouse_down = 
                 (event->button.button == SDL_BUTTON_LEFT) ? 0 : 1; 
+            Global_State.input.mouse_up = 
+                (event->button.button == SDL_BUTTON_LEFT) ? 1 : 0; 
         } break;
 
         case SDL_MOUSEMOTION:

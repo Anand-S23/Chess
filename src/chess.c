@@ -6,13 +6,23 @@ internal void ClearScreen(SDL_Renderer *renderer, u8 r, u8 g, u8 b, u8 a)
     SDL_RenderClear(renderer);
 }
 
+internal void RenderSelectedPiece(SDL_Renderer *renderer, game_state *state)
+{
+    int w, h;
+    SDL_QueryTexture(state->textures[state->current_selected.piece], NULL, NULL, &w, &h);
+    SDL_Rect rect = { state->input.mouse_x - CELL_HEIGHT / 2, 
+                      state->input.mouse_y - CELL_HEIGHT / 2,  
+                      CELL_WIDTH - 10, CELL_HEIGHT - 10 };
+    SDL_RenderCopy(renderer, state->textures[state->current_selected.piece], NULL, &rect);
+}
+
 internal void RenderPiece(SDL_Renderer *renderer, game_state *state, int i, int j, pieces piece)
 {
     if (piece != PIECE_none)
     {
         int w, h;
         SDL_QueryTexture(state->textures[piece], NULL, NULL, &w, &h);
-        SDL_Rect rect = { i * CELL_WIDTH + 5, j * CELL_WIDTH + 5,  w - 48, CELL_HEIGHT - 10};
+        SDL_Rect rect = { i * CELL_WIDTH + 5, j * CELL_WIDTH + 5, CELL_WIDTH - 10, CELL_HEIGHT - 10};
         SDL_RenderCopy(renderer, state->textures[piece], NULL, &rect);
     }
 }
@@ -40,6 +50,25 @@ internal void RenderBoard(SDL_Renderer *renderer, game_state *state)
 
             RenderPiece(renderer, state, i, j, state->board[j][i]);
         }
+    }
+}
+
+internal void SetPieceSelected(game_state *state)
+{
+    int i = (state->input.mouse_x - state->input.mouse_x % CELL_WIDTH) / CELL_WIDTH; 
+    int j = (state->input.mouse_y - state->input.mouse_y % CELL_HEIGHT) / CELL_HEIGHT; 
+
+    if (((state->current_turn == TURN_white && 
+        (state->board[j][i] <= PIECE_white_king && state->board[j][i] >= PIECE_white_pawn)) ||
+        (state->current_turn == TURN_black &&
+        (state->board[j][i] <= PIECE_black_king && state->board[j][i] >= PIECE_black_pawn))) && 
+        !state->current_selected.set)
+    {
+        state->current_selected.set = 1;
+        state->current_selected.piece = state->board[j][i];
+        state->current_selected.i = i; 
+        state->current_selected.j = j; 
+        state->board[j][i] = PIECE_none;
     }
 }
 
@@ -152,6 +181,33 @@ internal void UpdateApp(SDL_Renderer *renderer, game_state *state)
 
     ClearScreen(renderer, 0, 0, 0, 255);
     RenderBoard(renderer, state);
+
+    if (state->input.mouse_down)
+    {
+        SetPieceSelected(state);
+        RenderSelectedPiece(renderer, state);
+    }
+
+    if (state->input.mouse_up)
+    {
+        if (state->current_selected.piece != PIECE_none)
+        {
+            int i = (state->input.mouse_x - state->input.mouse_x % CELL_WIDTH) / CELL_WIDTH; 
+            int j = (state->input.mouse_y - state->input.mouse_y % CELL_HEIGHT) / CELL_HEIGHT; 
+            state->board[j][i] = state->current_selected.piece;
+            state->current_turn = (state->current_turn == TURN_white) ? TURN_black : TURN_white;
+        }
+
+        state->current_selected.piece = PIECE_none;
+        state->current_selected.set = 0;
+        state->input.mouse_up = 0;
+    }
+
+    if (state->current_selected.piece == PIECE_none)
+    {
+        state->current_selected.set = 0;
+    }
+
     SDL_RenderPresent(renderer);
     SDL_Delay(1);
 }

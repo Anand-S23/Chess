@@ -61,11 +61,20 @@ typedef enum pieces
     PIECE_max
 } pieces;
 
+typedef struct selected
+{
+    pieces piece; 
+    b32 set;
+    int i; 
+    int j; 
+} selected;
+
 typedef struct mouse_state
 {
     int mouse_x; 
     int mouse_y; 
     b32 mouse_down;
+    b32 mouse_up;
 } mouse_state;
 
 typedef struct game_state
@@ -74,6 +83,7 @@ typedef struct game_state
     b32 board_initialized;
     turn current_turn; 
     mouse_state input;
+    selected current_selected;
     SDL_Texture *textures[PIECE_max];
 } game_state;
 
