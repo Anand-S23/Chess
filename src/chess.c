@@ -6,72 +6,6 @@ internal void ClearScreen(SDL_Renderer *renderer, u8 r, u8 g, u8 b, u8 a)
     SDL_RenderClear(renderer);
 }
 
-internal void RenderSelectedPiece(SDL_Renderer *renderer, game_state *state)
-{
-    int w, h;
-    SDL_QueryTexture(state->textures[state->current_selected.piece], NULL, NULL, &w, &h);
-    SDL_Rect rect = { state->input.mouse_x - CELL_HEIGHT / 2, 
-                      state->input.mouse_y - CELL_HEIGHT / 2,  
-                      CELL_WIDTH - 10, CELL_HEIGHT - 10 };
-    SDL_RenderCopy(renderer, state->textures[state->current_selected.piece], NULL, &rect);
-}
-
-internal void RenderPiece(SDL_Renderer *renderer, game_state *state, int i, int j, pieces piece)
-{
-    if (piece != PIECE_none)
-    {
-        int w, h;
-        SDL_QueryTexture(state->textures[piece], NULL, NULL, &w, &h);
-        SDL_Rect rect = { i * CELL_WIDTH + 5, j * CELL_WIDTH + 5, CELL_WIDTH - 10, CELL_HEIGHT - 10};
-        SDL_RenderCopy(renderer, state->textures[piece], NULL, &rect);
-    }
-}
-
-internal void RenderBoard(SDL_Renderer *renderer, game_state *state)
-{
-    for (int j = 0; j < BOARD_HEIGHT; ++j)
-    {
-        for (int i = 0; i < BOARD_WIDTH; ++i)
-        {
-            if (i % 2 == j % 2)
-            {
-                SDL_SetRenderDrawColor(renderer, 124, 76, 64, 255);
-                SDL_Rect rect = { i * CELL_WIDTH, j * CELL_HEIGHT, 
-                                CELL_WIDTH, CELL_HEIGHT };
-                SDL_RenderFillRect(renderer, &rect);
-            }
-            else 
-            {
-                SDL_SetRenderDrawColor(renderer, 81, 42, 42, 255);
-                SDL_Rect rect = { i * CELL_WIDTH, j * CELL_HEIGHT, 
-                                CELL_WIDTH, CELL_HEIGHT };
-                SDL_RenderFillRect(renderer, &rect);
-            }
-
-            RenderPiece(renderer, state, i, j, state->board[j][i]);
-        }
-    }
-}
-
-internal void SetPieceSelected(game_state *state)
-{
-    int i = (state->input.mouse_x - state->input.mouse_x % CELL_WIDTH) / CELL_WIDTH; 
-    int j = (state->input.mouse_y - state->input.mouse_y % CELL_HEIGHT) / CELL_HEIGHT; 
-
-    if (((state->current_turn == TURN_white && 
-        (state->board[j][i] <= PIECE_white_king && state->board[j][i] >= PIECE_white_pawn)) ||
-        (state->current_turn == TURN_black &&
-        (state->board[j][i] <= PIECE_black_king && state->board[j][i] >= PIECE_black_pawn))) && 
-        !state->current_selected.set)
-    {
-        state->current_selected.set = 1;
-        state->current_selected.piece = state->board[j][i];
-        state->current_selected.i = i; 
-        state->current_selected.j = j; 
-        state->board[j][i] = PIECE_none;
-    }
-}
-
 internal void UpdateApp(SDL_Renderer *renderer, game_state *state)
 {
     if (!state->board_initialized)
@@ -174,18 +108,70 @@ internal void UpdateApp(SDL_Renderer *renderer, game_state *state)
                (pieces [8]){ PIECE_white_rook, PIECE_white_knight, PIECE_white_bishop, PIECE_white_queen, PIECE_white_king, PIECE_white_bishop, PIECE_white_knight, PIECE_white_rook },
                BOARD_WIDTH * 4);
 
+        state->moves = CreateStack();
+
         state->current_turn = TURN_white; 
 
         state->board_initialized = 1;
     }
 
     ClearScreen(renderer, 0, 0, 0, 255);
-    RenderBoard(renderer, state);
+
+    for (int j = 0; j < BOARD_HEIGHT; ++j)
+    {
+        for (int i = 0; i < BOARD_WIDTH; ++i)
+        {
+            if (i % 2 == j % 2)
+            {
+                SDL_SetRenderDrawColor(renderer, 124, 76, 64, 255);
+                SDL_Rect rect = { i * CELL_WIDTH, j * CELL_HEIGHT, 
+                                  CELL_WIDTH, CELL_HEIGHT };
+                SDL_RenderFillRect(renderer, &rect);
+            }
+            else 
+            {
+                SDL_SetRenderDrawColor(renderer, 81, 42, 42, 255);
+                SDL_Rect rect = { i * CELL_WIDTH, j * CELL_HEIGHT, 
+                                  CELL_WIDTH, CELL_HEIGHT };
+                SDL_RenderFillRect(renderer, &rect);
+            }
+
+            pieces piece = state->board[j][i];
+            if (piece != PIECE_none)
+            {
+                int w, h;
+                SDL_QueryTexture(state->textures[piece], NULL, NULL, &w, &h);
+                SDL_Rect rect = { i * CELL_WIDTH + 5, j * CELL_WIDTH + 5,
+                                  CELL_WIDTH - 10, CELL_HEIGHT - 10};
+                SDL_RenderCopy(renderer, state->textures[piece], NULL, &rect);
+            }
+        }
+    }
 
     if (state->input.mouse_down)
     {
-        SetPieceSelected(state);
-        RenderSelectedPiece(renderer, state);
+        int i = (state->input.mouse_x - state->input.mouse_x % CELL_WIDTH) / CELL_WIDTH; 
+        int j = (state->input.mouse_y - state->input.mouse_y % CELL_HEIGHT) / CELL_HEIGHT; 
+
+        if (((state->current_turn == TURN_white && 
+            (state->board[j][i] <= PIECE_white_king && state->board[j][i] >= PIECE_white_pawn)) ||
+            (state->current_turn == TURN_black &&
+            (state->board[j][i] <= PIECE_black_king && state->board[j][i] >= PIECE_black_pawn))) && 
+            !state->current_selected.set)
+        {
+            state->current_selected.set = 1;
+            state->current_selected.piece = state->board[j][i];
+            state->current_selected.i = i; 
+            state->current_selected.j = j; 
+            state->board[j][i] = PIECE_none;
+        }
+
+        int w, h;
+        SDL_QueryTexture(state->textures[state->current_selected.piece], NULL, NULL, &w, &h);
+        SDL_Rect rect = { state->input.mouse_x - CELL_HEIGHT / 2, 
+                          state->input.mouse_y - CELL_HEIGHT / 2,  
+                          CELL_WIDTH - 10, CELL_HEIGHT - 10 };
+        SDL_RenderCopy(renderer, state->textures[state->current_selected.piece], NULL, &rect);
     }
 
     if (state->input.mouse_up)
@@ -194,13 +180,38 @@ internal void UpdateApp(SDL_Renderer *renderer, game_state *state)
         {
             int i = (state->input.mouse_x - state->input.mouse_x % CELL_WIDTH) / CELL_WIDTH; 
             int j = (state->input.mouse_y - state->input.mouse_y % CELL_HEIGHT) / CELL_HEIGHT; 
-            state->board[j][i] = state->current_selected.piece;
-            state->current_turn = (state->current_turn == TURN_white) ? TURN_black : TURN_white;
+
+            if ((i == state->current_selected.i) && (j == state->current_selected.j))
+            {
+                move new_move = {0};
+                {
+                    new_move.moved_piece = state->current_selected.piece;
+                    new_move.moved_i = i;
+                    new_move.moved_j = j;
+                    new_move.original_piece = state->board[j][i];
+                    new_move.original_i = state->current_selected.i;
+                    new_move.original_j = state->current_selected.j;
+                }
+
+                state->board[j][i] = state->current_selected.piece;
+                Push(state->moves, new_move);
+                state->current_turn = (state->current_turn == TURN_white) ? TURN_black : TURN_white;
+            }
         }
 
         state->current_selected.piece = PIECE_none;
         state->current_selected.set = 0;
         state->input.mouse_up = 0;
+    }
+
+    if (state->input.mouse_right_up)
+    {
+        if (!Empty(state->moves))
+        {
+            move undo = Pop(state->moves);
+            state->board[undo.original_j][undo.original_i] = undo.moved_piece;
+            state->board[undo.moved_j][undo.moved_i] = undo.original_piece;
+        }
     }
 
     if (state->current_selected.piece == PIECE_none)

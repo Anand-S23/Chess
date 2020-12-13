@@ -7,16 +7,16 @@ typedef struct node
     move data;
 } node;
 
-typedef struct linked_list
+typedef struct stack
 {
     node* head;
-} linked_list;
+} stack;
 
-node* CreateNode(move data, node *next);
-linked_list CreateList(); 
-void Push(linked_list list, move data);
-move Pop(linked_list list);
-move Top(linked_list list);
-int Empty(linked_list list);
+internal node* CreateNode(move data, node *next);
+internal stack CreateStack(); 
+internal void Push(stack list, move data);
+internal move Pop(stack list);
+internal move Top(stack list);
+internal int Empty(stack list);
 
 #endif

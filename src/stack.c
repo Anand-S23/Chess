@@ -1,7 +1,7 @@
 #include "stack.h"
 
 // makes a new node using malloc
-node* CreateNode(move data, node* next)
+internal node* CreateNode(move data, node* next)
 {
     node* ret_node = (node *)malloc(sizeof(node));
     ret_node->data = data;
@@ -10,15 +10,15 @@ node* CreateNode(move data, node* next)
 }
 
 // makes a new list with head of {0, NULL}
-linked_list CreateList()
+internal stack CreateStack()
 {
-    linked_list ret_list;
+    stack ret_list;
     move new_move = {0};
     ret_list.head = CreateNode(new_move, NULL);
     return ret_list; 
 } 
 
-void Push(linked_list list, move data)
+internal void Push(stack list, move data)
 {
     node* in_node = CreateNode(data, NULL);
 
@@ -26,7 +26,7 @@ void Push(linked_list list, move data)
     list.head->next = in_node;
 }
 
-move Pop(linked_list list)
+internal move Pop(stack list)
 {
     move data = list.head->next->data;
     node *temp = list.head->next;
@@ -35,12 +35,12 @@ move Pop(linked_list list)
     return data;
 }
     
-move Top(linked_list list)
+internal move Top(stack list)
 {
     return list.head->next->data;
 }
 
-int Empty(linked_list list)
+internal int Empty(stack list)
 {
     return list.head->next == NULL;
 }

@@ -2,6 +2,7 @@
 #define PLATFROM_CHESS_H 
 
 #include <stdint.h> 
+#include "stack.h"
 
 typedef int8_t  i8;
 typedef int16_t i16;
@@ -63,12 +64,12 @@ typedef enum pieces
 
 typedef struct move
 {
-    pieces new_piece; 
-    pieces old_piece; 
-    int new_i; 
-    int new_j; 
-    int old_i; 
-    int old_j; 
+    pieces moved_piece; 
+    pieces original_piece; 
+    int moved_i; 
+    int moved_j; 
+    int original_i; 
+    int original_j; 
 } move;
 
 typedef struct selected
@@ -85,11 +86,14 @@ typedef struct mouse_state
     int mouse_y; 
     b32 mouse_down;
     b32 mouse_up;
+    b32 mouse_right_down; 
+    b32 mouse_right_up;
 } mouse_state;
 
 typedef struct game_state
 {
     pieces board[BOARD_WIDTH][BOARD_HEIGHT];
+    stack moves; 
     b32 board_initialized;
     turn current_turn; 
     mouse_state input;
