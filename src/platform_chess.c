@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "platform_chess.h"
+#include "stack.c"
 #include "chess.c"
 
 global b32 Global_Running;

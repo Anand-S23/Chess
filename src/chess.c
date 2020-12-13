@@ -35,14 +35,14 @@ internal void RenderBoard(SDL_Renderer *renderer, game_state *state)
         {
             if (i % 2 == j % 2)
             {
-                SDL_SetRenderDrawColor(renderer, 81, 42, 42, 255);
+                SDL_SetRenderDrawColor(renderer, 124, 76, 64, 255);
                 SDL_Rect rect = { i * CELL_WIDTH, j * CELL_HEIGHT, 
                                 CELL_WIDTH, CELL_HEIGHT };
                 SDL_RenderFillRect(renderer, &rect);
             }
             else 
             {
-                SDL_SetRenderDrawColor(renderer, 124, 76, 64, 255);
+                SDL_SetRenderDrawColor(renderer, 81, 42, 42, 255);
                 SDL_Rect rect = { i * CELL_WIDTH, j * CELL_HEIGHT, 
                                 CELL_WIDTH, CELL_HEIGHT };
                 SDL_RenderFillRect(renderer, &rect);

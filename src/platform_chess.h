@@ -61,6 +61,16 @@ typedef enum pieces
     PIECE_max
 } pieces;
 
+typedef struct move
+{
+    pieces new_piece; 
+    pieces old_piece; 
+    int new_i; 
+    int new_j; 
+    int old_i; 
+    int old_j; 
+} move;
+
 typedef struct selected
 {
     pieces piece; 
