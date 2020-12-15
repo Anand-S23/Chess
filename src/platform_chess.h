@@ -33,72 +33,19 @@ typedef i32 b32;
 #define CELL_WIDTH   (WINDOW_WIDTH / BOARD_WIDTH) 
 #define CELL_HEIGHT  (WINDOW_HEIGHT / BOARD_HEIGHT)
 
-typedef enum turn
+typedef struct platform
 {
-    TURN_white, 
-    TURN_black
-} turn;
+    void *permanent_storage;
+    u32   permanent_storage_size;
+    void *transient_storage;
+    u32   transient_storage_size;
 
-typedef enum pieces
-{
-    PIECE_none, 
-
-    // white pieces
-    PIECE_white_pawn, 
-    PIECE_white_knight, 
-    PIECE_white_bishop, 
-    PIECE_white_rook, 
-    PIECE_white_queen, 
-    PIECE_white_king, 
-
-    // black pieces
-    PIECE_black_pawn, 
-    PIECE_black_knight, 
-    PIECE_black_bishop, 
-    PIECE_black_rook, 
-    PIECE_black_queen, 
-    PIECE_black_king, 
-
-    PIECE_max
-} pieces;
-
-typedef struct move
-{
-    pieces moved_piece; 
-    pieces original_piece; 
-    int moved_i; 
-    int moved_j; 
-    int original_i; 
-    int original_j; 
-} move;
-
-typedef struct selected
-{
-    pieces piece; 
-    b32 set;
-    int i; 
-    int j; 
-} selected;
-
-typedef struct mouse_state
-{
     int mouse_x; 
     int mouse_y; 
     b32 mouse_down;
     b32 mouse_up;
     b32 mouse_right_down; 
     b32 mouse_right_up;
-} mouse_state;
-
-typedef struct game_state
-{
-    pieces board[BOARD_WIDTH][BOARD_HEIGHT];
-    stack moves; 
-    b32 board_initialized;
-    turn current_turn; 
-    mouse_state input;
-    selected current_selected;
-    SDL_Texture *textures[PIECE_max];
-} game_state;
+} platform; 
 
 #endif

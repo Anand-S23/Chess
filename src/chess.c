@@ -1,10 +1,5 @@
 #include "chess.h"
-
-internal void ClearScreen(SDL_Renderer *renderer, u8 r, u8 g, u8 b, u8 a) 
-{
-    SDL_SetRenderDrawColor(renderer, r, g, b, a);
-    SDL_RenderClear(renderer);
-}
+#include "renderer.c"
 
 internal void UpdateApp(SDL_Renderer *renderer, game_state *state)
 {

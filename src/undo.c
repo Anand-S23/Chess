@@ -35,11 +35,6 @@ internal move Pop(stack list)
     return data;
 }
     
-internal move Top(stack list)
-{
-    return list.head->next->data;
-}
-
 internal int Empty(stack list)
 {
     return list.head->next == NULL;
