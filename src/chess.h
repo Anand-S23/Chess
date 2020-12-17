@@ -7,7 +7,7 @@ typedef enum turn
     TURN_black
 } turn;
 
-typedef enum piece_type
+typedef enum piece
 {
     PIECE_none, 
 
@@ -28,36 +28,41 @@ typedef enum piece_type
     PIECE_black_king, 
 
     PIECE_max
-} piece_type;
-
-typedef struct piece
-{
-    int x; 
-    int y; 
-    piece_type type;
-    b32 moved; 
 } piece;
 
 typedef struct selected
 {
-    piece piece; 
+    piece type;
+    int i; 
+    int j; 
     b32 set;
 } selected;
 
-#include "undo.c"
+typedef struct move
+{
+    piece current_piece; 
+    int current_i; 
+    int current_j; 
+    piece original_piece; 
+    int original_i; 
+    int original_j; 
+} move;
+
+#include "undo.h"
 
 typedef struct game_state
 {
+    memory_arena permanent_arena;
+    memory_arena transient_arena;
+
     piece board[BOARD_WIDTH][BOARD_HEIGHT];
-    b32 board_initialized;
+    SDL_Texture *textures[PIECE_max];
     stack moves; 
     turn current_turn; 
-    piece current_selected;
-    b32 selected_set
-    SDL_Texture *textures[PIECE_max];
+    selected current_selected;
 } game_state;
 
 internal void ClearScreen(SDL_Renderer *renderer, u8 r, u8 g, u8 b, u8 a);
-internal void UpdateApp(SDL_Renderer *renderer, game_state *state);
+internal void UpdateApp(SDL_Renderer *renderer, platform *platform);
 
 #endif

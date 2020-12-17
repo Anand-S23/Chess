@@ -1,4 +1,4 @@
-#include "stack.h"
+#include "undo.h"
 
 // makes a new node using malloc
 internal node* CreateNode(move data, node* next)

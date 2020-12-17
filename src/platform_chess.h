@@ -2,7 +2,6 @@
 #define PLATFROM_CHESS_H 
 
 #include <stdint.h> 
-#include "stack.h"
 
 typedef int8_t  i8;
 typedef int16_t i16;
@@ -39,6 +38,8 @@ typedef struct platform
     u32   permanent_storage_size;
     void *transient_storage;
     u32   transient_storage_size;
+
+    b32 initialized;
 
     int mouse_x; 
     int mouse_y; 
