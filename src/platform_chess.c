@@ -86,6 +86,10 @@ int main(int argc, char** argv)
                 }
 
                 UpdateApp(renderer, &Global_Platform);
+
+                // TODO: Find a better solution to handle this
+                Global_Platform.mouse_up = 0; 
+                Global_Platform.mouse_right_up = 0;
             }
         }
         else

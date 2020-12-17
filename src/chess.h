@@ -1,6 +1,12 @@
 #ifndef CHESS_H 
 #define CHESS_H
 
+typedef enum mode
+{
+    MODE_menu,
+    MODE_freeplay
+} mode;
+
 typedef enum turn
 {
     TURN_white, 
@@ -59,10 +65,11 @@ typedef struct game_state
     SDL_Texture *textures[PIECE_max];
     stack moves; 
     turn current_turn; 
+    mode current_mode;
     selected current_selected;
 } game_state;
 
-internal void ClearScreen(SDL_Renderer *renderer, u8 r, u8 g, u8 b, u8 a);
+internal void UpdateMenu(SDL_Renderer *renderer, platform *platform, game_state *state);
 internal void UpdateApp(SDL_Renderer *renderer, platform *platform);
 
 #endif

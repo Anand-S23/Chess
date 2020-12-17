@@ -19,7 +19,6 @@ internal void RenderImage(SDL_Renderer *renderer,
 {
     int w, h;
     SDL_QueryTexture(img_texture, NULL, NULL, &w, &h);
-    SDL_Rect render_rect = { rect.x + 5, rect.y + 5,
-                             rect.width - 10, rect.height - 10 }; 
+    SDL_Rect render_rect = { rect.x, rect.y, w, h }; 
     SDL_RenderCopy(renderer, img_texture, NULL, &render_rect);
 }

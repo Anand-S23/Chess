@@ -1,5 +1,27 @@
 #include "chess.h"
 #include "renderer.c"
+#include "ui.c"
+
+internal void UpdateMenu(SDL_Renderer *renderer, platform *platform, game_state *state)
+{
+    ClearScreen(renderer, v4(0, 0, 0, 255));
+
+    ui ui = CreateUI(renderer, platform);
+    {
+        SetUIPrimary(&ui, v4(150, 150, 150, 255));
+        if (Button(&ui, v4(100, 100, 200, 100)))
+        {
+            state->current_mode = MODE_freeplay;
+        }
+
+        SetUIPrimary(&ui, v4(255, 255, 255, 255));
+        f32 slider_value = Slider(&ui, v4(100, 500, 250, 50));
+        RenderFilledRect(renderer, 
+                         v4((int)(slider_value * 255), 100, 100, 255), 
+                         v4(300, 300 * slider_value, 50, 50));
+    }
+
+}
 
 internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
 {
@@ -205,67 +227,74 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
         platform->initialized = 1;
     }
 
-    if (platform->mouse_down)
+    if (state->current_mode != MODE_menu)
     {
-        int i = (platform->mouse_x - platform->mouse_x % CELL_WIDTH) / CELL_WIDTH; 
-        int j = (platform->mouse_y - platform->mouse_y % CELL_HEIGHT) / CELL_HEIGHT; 
-
-        piece current_piece = state->board[j][i];
-        if (((state->current_turn == TURN_white && (current_piece <= PIECE_white_king && current_piece >= PIECE_white_pawn)) ||
-             (state->current_turn == TURN_black && (current_piece <= PIECE_black_king && current_piece >= PIECE_black_pawn))) && 
-            !state->current_selected.set)
-        {
-            state->current_selected.set = 1;
-            state->current_selected.type = current_piece;
-            state->current_selected.i = i; 
-            state->current_selected.j = j;
-            state->board[j][i] = PIECE_none;
-        }
-    }
-
-    if (platform->mouse_up)
-    {
-        if (state->current_selected.type != PIECE_none)
+        if (platform->mouse_down)
         {
             int i = (platform->mouse_x - platform->mouse_x % CELL_WIDTH) / CELL_WIDTH; 
             int j = (platform->mouse_y - platform->mouse_y % CELL_HEIGHT) / CELL_HEIGHT; 
 
-            if ((i != state->current_selected.i) || (j != state->current_selected.j))
+            piece current_piece = state->board[j][i];
+            if (((state->current_turn == TURN_white && (current_piece <= PIECE_white_king && current_piece >= PIECE_white_pawn)) ||
+                (state->current_turn == TURN_black && (current_piece <= PIECE_black_king && current_piece >= PIECE_black_pawn))) && 
+                !state->current_selected.set)
             {
-                move new_move = {0};
-                {
-                    new_move.current_piece = state->current_selected.type;
-                    new_move.current_i = i;
-                    new_move.current_j = j;
-                    new_move.original_piece = state->board[j][i];
-                    new_move.original_i = state->current_selected.i;
-                    new_move.original_j = state->current_selected.j;
-                }
-
-                state->board[j][i] = state->current_selected.type;
-                Push(state->moves, new_move);
-                state->current_turn = (state->current_turn == TURN_white) ? TURN_black : TURN_white;
-            }
-            else
-            {
-                int old_j = state->current_selected.j;
-                int old_i = state->current_selected.i;
-                state->board[old_j][old_i] = state->current_selected.type;
+                state->current_selected.set = 1;
+                state->current_selected.type = current_piece;
+                state->current_selected.i = i; 
+                state->current_selected.j = j;
+                state->board[j][i] = PIECE_none;
             }
         }
 
-        state->current_selected.type = PIECE_none;
-        state->current_selected.set = 0;
-        platform->mouse_up = 0;
-    }
-
-    if (platform->mouse_right_up)
-    {
-        if (!Empty(state->moves))
+        if (platform->mouse_up)
         {
-            move undo = Pop(state->moves);
-            state->board[undo.original_j][undo.original_i] = undo.current_piece;
-            state->board[undo.current_j][undo.current_i]   = undo.original_piece;
+            if (state->current_selected.type != PIECE_none)
+            {
+                int i = (platform->mouse_x - platform->mouse_x % CELL_WIDTH) / CELL_WIDTH; 
+                int j = (platform->mouse_y - platform->mouse_y % CELL_HEIGHT) / CELL_HEIGHT; 
+
+                if ((i != state->current_selected.i) || (j != state->current_selected.j))
+                {
+                    move new_move = {0};
+                    {
+                        new_move.current_piece = state->current_selected.type;
+                        new_move.current_i = i;
+                        new_move.current_j = j;
+                        new_move.original_piece = state->board[j][i];
+                        new_move.original_i = state->current_selected.i;
+                        new_move.original_j = state->current_selected.j;
+                    }
+
+                    state->board[j][i] = state->current_selected.type;
+                    Push(state->moves, new_move);
+                    state->current_turn = (state->current_turn == TURN_white) ? TURN_black : TURN_white;
+                }
+                else
+                {
+                    int old_j = state->current_selected.j;
+                    int old_i = state->current_selected.i;
+                    state->board[old_j][old_i] = state->current_selected.type;
+                }
+            }
+
+            state->current_selected.type = PIECE_none;
+            state->current_selected.set = 0;
+            platform->mouse_up = 0;
+        }
+
+        if (platform->mouse_right_up && !state->current_selected.set)
+        {
+            if (!Empty(state->moves))
+            {
+                move undo = Pop(state->moves);
+                state->board[undo.original_j][undo.original_i] = undo.current_piece;
+                state->board[undo.current_j][undo.current_i]   = undo.original_piece;
+                state->current_turn = (state->current_turn == TURN_white) ? TURN_black : TURN_white;
+            }
+
+            platform->mouse_down = 0; 
+            platform->mouse_right_up = 0;
         }
     }
 
@@ -302,6 +331,11 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
                     v4(platform->mouse_x - CELL_WIDTH / 2, 
                        platform->mouse_y - CELL_HEIGHT / 2,
                        CELL_WIDTH, CELL_HEIGHT));
+    }
+
+    if (state->current_mode == MODE_menu)
+    {
+        UpdateMenu(renderer, platform, state);
     }
 
     SDL_RenderPresent(renderer);
