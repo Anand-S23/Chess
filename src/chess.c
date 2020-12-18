@@ -2,19 +2,307 @@
 #include "renderer.c"
 #include "ui.c"
 
+internal b32 OppositeColorPiece(move move)
+{
+    b32 result = 1;
+
+    if (move.moved_piece < PIECE_white && 
+        move.taken_piece < PIECE_white &&
+        move.taken_piece > PIECE_none)
+    {
+        result = 0;
+    }
+    else if (move.moved_piece > PIECE_white && 
+             move.taken_piece > PIECE_white && 
+             move.taken_piece < PIECE_max)
+    {
+        result = 0;
+    }
+
+    return result;
+}
+
+internal b32 CheckDiagonal(game_state *state, move move)
+{
+    int result = 0;
+
+    int diff_i = move.moved_to_i - move.original_i;
+    int diff_j = move.moved_to_j - move.original_j;
+
+    if (OppositeColorPiece(move))
+    {
+        if (AbsoluteValue(diff_i) == AbsoluteValue(diff_j))
+        {
+            int i_inc = (diff_i > 0) ? -1 : 1;
+            int j_inc = (diff_j > 0) ? -1 : 1;
+
+            int current_i = move.moved_to_i + i_inc;
+            int current_j = move.moved_to_j + j_inc;
+            result = 1;
+            while (current_i != move.original_i && current_j != move.original_j)
+            {
+                if (state->board[current_j][current_i] != PIECE_none)
+                {
+                    result = 0;
+                    break;
+                }
+
+                current_i += i_inc; 
+                current_j += j_inc;
+            }
+        }
+    }
+
+    return result;
+}
+
+internal b32 CheckLine(game_state *state, move move)
+{
+    int result = 0;
+
+    int diff_i = move.moved_to_i - move.original_i;
+    int diff_j = move.moved_to_j - move.original_j;
+
+    if (OppositeColorPiece(move))
+    {
+        if ((AbsoluteValue(diff_i) == 0 && AbsoluteValue(diff_j) != 0) ||
+            (AbsoluteValue(diff_i) != 0 && AbsoluteValue(diff_j) == 0))
+        {
+            int i_inc = (diff_i > 0) ? -1 : 1;
+            i_inc = (diff_i == 0) ? 0 : i_inc;
+            int j_inc = (diff_j > 0) ? -1 : 1;
+            j_inc = (diff_j == 0) ? 0 : j_inc;
+
+
+            result = 1;
+            int current_i = move.moved_to_i + i_inc;
+            int current_j = move.moved_to_j + j_inc;
+            while (current_i != move.original_i || current_j != move.original_j)
+            {
+                if (state->board[current_j][current_i] != PIECE_none)
+                {
+                    result = 0;
+                    break;
+                }
+
+                current_i += i_inc; 
+                current_j += j_inc;
+            }
+        }
+    }
+
+    return result;
+}
+
+internal b32 CheckMoveValidity(game_state *state, move move)
+{
+    b32 result = 0;
+
+    switch (move.moved_piece)
+    {
+        case PIECE_white_pawn: 
+        {
+            if (move.original_j == 6 && 
+                move.moved_to_j == 4 &&
+                move.original_i == move.moved_to_i &&
+                move.taken_piece == PIECE_none && 
+                state->board[move.original_j - 1][move.original_i] == PIECE_none)
+            {
+                result = 1;
+            }
+            else if (move.moved_to_j == (move.original_j - 1))
+            {
+                if (move.moved_to_i == (move.original_i - 1) ||
+                    move.moved_to_i == (move.original_i + 1))
+                {
+                    if (OppositeColorPiece(move) && move.taken_piece != PIECE_none)
+                    {
+                        result = 1;
+                    }
+                }
+                else if (move.moved_to_i == move.original_i &&
+                         move.taken_piece == PIECE_none)
+                {
+                    result = 1;
+                }
+            }
+
+            if (move.moved_to_j == 0)
+            {
+                state->board[move.moved_to_j][move.moved_to_i] = PIECE_white_queen;
+            }
+        } break;
+
+        case PIECE_black_pawn: 
+        {
+            if (move.original_j == 1 && 
+                move.moved_to_j == 3 &&
+                move.original_i == move.moved_to_i &&
+                move.taken_piece == PIECE_none && 
+                state->board[move.original_j + 1][move.original_i] == PIECE_none)
+            {
+                result = 1;
+            }
+            else if (move.moved_to_j == (move.original_j + 1))
+            {
+                if (move.moved_to_i == (move.original_i - 1) ||
+                    move.moved_to_i == (move.original_i + 1))
+                {
+                    if (OppositeColorPiece(move) && move.taken_piece != PIECE_none)
+                    {
+                        result = 1;
+                    }
+                }
+                else if (move.moved_to_i == move.original_i &&
+                         move.taken_piece == PIECE_none)
+                {
+                    result = 1;
+                }
+            }
+
+            if (move.moved_to_j == 7)
+            {
+                state->board[move.moved_to_j][move.moved_to_i] = PIECE_black_queen;
+            }
+        } break;
+
+        case PIECE_white_bishop: 
+        case PIECE_black_bishop: 
+        {
+            result = CheckDiagonal(state, move);
+        } break;
+
+        case PIECE_white_knight: 
+        case PIECE_black_knight: 
+        {
+            int diff_i = AbsoluteValue(move.moved_to_i - move.original_i);
+            int diff_j = AbsoluteValue(move.moved_to_j - move.original_j);
+
+            if (OppositeColorPiece(move))
+            {
+                if ((diff_j == 2 && diff_i == 1) ||
+                    (diff_j == 1 && diff_i == 2))
+                {
+                    result = 1;
+                }
+            }
+        } break;
+
+        case PIECE_white_rook: 
+        case PIECE_black_rook: 
+        {
+            result = CheckLine(state, move);
+
+            if (move.original_i == 7 && move.original_j == 7)
+            {
+                state->castle.white_can_castle_left = 0;
+            }
+            else if (move.original_i == 7 && move.original_j == 0)
+            {
+                state->castle.black_can_castle_left = 0;
+            }
+            else if (move.original_i == 0 && move.original_j == 7)
+            {
+                state->castle.black_can_castle_left = 0;
+            }
+            else if (move.original_i == 0 && move.original_j == 0)
+            {
+                state->castle.black_can_castle_right = 0;
+            }
+        } break;
+
+        case PIECE_white_queen: 
+        case PIECE_black_queen: 
+        {
+            result = (CheckDiagonal(state, move) || CheckLine(state, move));
+        } break;
+
+        case PIECE_white_king: 
+        case PIECE_black_king: 
+        {
+            int diff_i = move.moved_to_i - move.original_i;
+            int diff_j = move.moved_to_j - move.original_j;
+
+            if (OppositeColorPiece(move))
+            {
+                if (diff_j == 0 && diff_i == 2)
+                {
+                    if (CheckLine(state, move))
+                    {
+                        if (move.moved_piece == PIECE_white_king &&
+                            state->castle.white_can_castle_right)
+                        {
+                            result = 1; 
+                            state->castle.white_can_castle_right = 0;
+                            state->board[7][5] = PIECE_white_rook;
+                            state->board[7][7] = PIECE_none;
+                        }
+                        else if (move.moved_piece == PIECE_black_king &&
+                                 state->castle.black_can_castle_right)
+                        {
+                            result = 1; 
+                            state->castle.black_can_castle_right = 0;
+                            state->board[0][5] = PIECE_black_rook;
+                            state->board[0][7] = PIECE_none;
+                        }
+                    }
+                }
+                else if (diff_j == 0 && diff_i == -2)
+                {
+                    if (CheckLine(state, move))
+                    {
+                        if (move.moved_piece == PIECE_white_king &&
+                            state->castle.white_can_castle_left)
+                        {
+                            result = 1; 
+                            state->castle.white_can_castle_left = 0;
+                            state->board[7][3] = PIECE_white_rook;
+                            state->board[7][0] = PIECE_none;
+                        }
+                        else if (move.moved_piece == PIECE_black_king &&
+                                 state->castle.black_can_castle_left)
+                        {
+                            result = 1; 
+                            state->castle.black_can_castle_left = 0;
+                            state->board[0][3] = PIECE_black_rook;
+                            state->board[0][0] = PIECE_none;
+                        }
+                    }
+                }
+                if ((diff_i == 1 || diff_i == 0) &&
+                    (diff_j == 0 || diff_j == 1))
+                {
+                    if (move.moved_piece == PIECE_white_king)
+                    {
+                        state->castle.white_can_castle_left = 0;
+                        state->castle.white_can_castle_right = 0;
+                    }
+                    else if (move.moved_piece == PIECE_black_king)
+                    {
+                        state->castle.black_can_castle_left = 0;
+                        state->castle.black_can_castle_right = 0;
+                    }
+
+                    result = 1;
+                }
+            }
+        } break;
+    }
+
+    return result;
+}
+
 internal void UpdateMenu(SDL_Renderer *renderer, platform *platform, game_state *state)
 {
     ClearScreen(renderer, v4(0, 0, 0, 255));
 
     ui ui = CreateUI(renderer, platform);
     {
-        SetUIPrimary(&ui, v4(150, 150, 150, 255));
         if (Button(&ui, v4(100, 100, 200, 100)))
         {
             state->current_mode = MODE_freeplay;
         }
 
-        SetUIPrimary(&ui, v4(255, 255, 255, 255));
         f32 slider_value = Slider(&ui, v4(100, 500, 250, 50));
         RenderFilledRect(renderer, 
                          v4((int)(slider_value * 255), 100, 100, 255), 
@@ -115,7 +403,11 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
 
                 default: 
                 {
-                    printf("Error: %d not loaded", i);
+                    // Skips PIECE_white and PIECE_black
+                    if (i != 7 && i != 14)
+                    {
+                        printf("Error: %d not loaded\n", i);
+                    }
                 } break;
             }
         }
@@ -224,6 +516,11 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
 
         state->current_turn = TURN_white; 
 
+        state->castle.black_can_castle_left = 1;
+        state->castle.black_can_castle_right = 1;
+        state->castle.white_can_castle_left = 1;
+        state->castle.white_can_castle_right = 1;
+
         platform->initialized = 1;
     }
 
@@ -258,17 +555,26 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
                 {
                     move new_move = {0};
                     {
-                        new_move.current_piece = state->current_selected.type;
-                        new_move.current_i = i;
-                        new_move.current_j = j;
-                        new_move.original_piece = state->board[j][i];
+                        new_move.moved_piece = state->current_selected.type;
+                        new_move.moved_to_i = i;
+                        new_move.moved_to_j = j;
+                        new_move.taken_piece = state->board[j][i];
                         new_move.original_i = state->current_selected.i;
                         new_move.original_j = state->current_selected.j;
                     }
 
-                    state->board[j][i] = state->current_selected.type;
-                    Push(state->moves, new_move);
-                    state->current_turn = (state->current_turn == TURN_white) ? TURN_black : TURN_white;
+                    if (CheckMoveValidity(state, new_move))
+                    {
+                        state->board[j][i] = state->current_selected.type;
+                        Push(state->moves, new_move);
+                        state->current_turn = (state->current_turn == TURN_white) ? TURN_black : TURN_white;
+                    }
+                    else
+                    {
+                        int old_j = state->current_selected.j;
+                        int old_i = state->current_selected.i;
+                        state->board[old_j][old_i] = state->current_selected.type;
+                    }
                 }
                 else
                 {
@@ -285,11 +591,12 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
 
         if (platform->mouse_right_up && !state->current_selected.set)
         {
+            // TODO: Fix castle undo
             if (!Empty(state->moves))
             {
                 move undo = Pop(state->moves);
-                state->board[undo.original_j][undo.original_i] = undo.current_piece;
-                state->board[undo.current_j][undo.current_i]   = undo.original_piece;
+                state->board[undo.original_j][undo.original_i] = undo.moved_piece;
+                state->board[undo.moved_to_j][undo.moved_to_i] = undo.taken_piece;
                 state->current_turn = (state->current_turn == TURN_white) ? TURN_black : TURN_white;
             }
 

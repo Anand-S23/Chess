@@ -12,17 +12,15 @@ internal ui CreateUI(SDL_Renderer *renderer, platform *platform)
 
         result.primary_color   = v4(150, 150, 150, 255);
         result.secondary_color = v4(100, 100, 100, 255);
-        result.tertiary_color  = v4(50, 50, 50, 255);
     }
 
     return result;
 }
 
-internal void SetUIColor(ui *ui, v4 primary, v4 secondary, v4 tertiary)
+internal void SetUIColor(ui *ui, v4 primary, v4 secondary)
 {
     ui->primary_color   = primary;
     ui->secondary_color = secondary;
-    ui->tertiary_color  = tertiary;
 }
 
 internal void SetUIPrimary(ui *ui, v4 primary)
@@ -35,10 +33,6 @@ internal void SetUISecondary(ui *ui, v4 secondary)
     ui->secondary_color = secondary;
 }
 
-internal void SetUITertiary(ui *ui, v4 tertiary)
-{
-    ui->tertiary_color = tertiary;
-}
 
 internal b32 Button(ui *ui, v4 rect)
 {
@@ -53,7 +47,7 @@ internal b32 Button(ui *ui, v4 rect)
 
     if (hot && ui->mouse_down)
     {
-        color = ui->tertiary_color;
+        color = ui->secondary_color;
         is_pressed = 1;
     }
     else if (hot)

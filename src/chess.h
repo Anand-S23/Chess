@@ -25,6 +25,8 @@ typedef enum piece
     PIECE_white_queen, 
     PIECE_white_king, 
 
+    PIECE_white,
+
     // black pieces
     PIECE_black_pawn, 
     PIECE_black_knight, 
@@ -32,6 +34,8 @@ typedef enum piece
     PIECE_black_rook, 
     PIECE_black_queen, 
     PIECE_black_king, 
+
+    PIECE_black,
 
     PIECE_max
 } piece;
@@ -46,13 +50,21 @@ typedef struct selected
 
 typedef struct move
 {
-    piece current_piece; 
-    int current_i; 
-    int current_j; 
-    piece original_piece; 
+    piece moved_piece; 
     int original_i; 
     int original_j; 
+    piece taken_piece; 
+    int moved_to_i; 
+    int moved_to_j; 
 } move;
+
+typedef struct castle
+{
+    b32 white_can_castle_left;
+    b32 white_can_castle_right;
+    b32 black_can_castle_left;
+    b32 black_can_castle_right;
+} castle;
 
 #include "undo.h"
 
@@ -67,6 +79,7 @@ typedef struct game_state
     turn current_turn; 
     mode current_mode;
     selected current_selected;
+    castle castle;
 } game_state;
 
 internal void UpdateMenu(SDL_Renderer *renderer, platform *platform, game_state *state);
