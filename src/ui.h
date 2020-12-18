@@ -20,7 +20,7 @@ internal ui CreateUI(SDL_Renderer *renderer, platform *platform);
 internal void SetUIColor(ui *ui, v4 primary, v4 secondary);
 internal void SetUIPrimary(ui *ui, v4 primary);
 internal void SetUISecondary(ui *ui, v4 secondary);
-internal b32 Button(ui *ui, v4 rect);
+internal b32 Button(ui *ui, v4 rect, SDL_Texture *play);
 internal f32 Slider(ui *ui, v4 rect);
 
 #endif

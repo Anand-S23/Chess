@@ -10,8 +10,8 @@ internal ui CreateUI(SDL_Renderer *renderer, platform *platform)
         result.mouse_y    = platform->mouse_y; 
         result.mouse_down = platform->mouse_down; 
 
-        result.primary_color   = v4(150, 150, 150, 255);
-        result.secondary_color = v4(100, 100, 100, 255);
+        result.primary_color   = v4(75, 75, 75, 255);
+        result.secondary_color = v4(150, 150, 150, 255);
     }
 
     return result;
@@ -34,7 +34,7 @@ internal void SetUISecondary(ui *ui, v4 secondary)
 }
 
 
-internal b32 Button(ui *ui, v4 rect)
+internal b32 Button(ui *ui, v4 rect, SDL_Texture *play)
 {
     b32 is_pressed = 0;
 
@@ -60,6 +60,7 @@ internal b32 Button(ui *ui, v4 rect)
     }
     
     RenderFilledRect(ui->renderer, color, rect);
+    RenderImage(ui->renderer, play, rect);
 
     return is_pressed;
 }

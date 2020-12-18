@@ -75,6 +75,7 @@ typedef struct game_state
 
     piece board[BOARD_WIDTH][BOARD_HEIGHT];
     SDL_Texture *textures[PIECE_max];
+    SDL_Texture *text[2];
     stack moves; 
     turn current_turn; 
     mode current_mode;

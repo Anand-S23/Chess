@@ -302,11 +302,13 @@ internal b32 CheckMoveValidity(game_state *state, move move)
 internal void UpdateMenu(SDL_Renderer *renderer, platform *platform, game_state *state)
 {
     ClearScreen(renderer, v4(0, 0, 0, 255));
+    RenderImage(renderer, state->text[0], 
+                v4(WINDOW_WIDTH / 2 - 180, 175, 360, 240));
 
     ui ui = CreateUI(renderer, platform);
     {
         v4 rect = v4(WINDOW_WIDTH / 2 - 120, 400, 240, 80);
-        if (Button(&ui, rect))
+        if (Button(&ui, rect, state->text[1]))
         {
             state->current_mode = MODE_freeplay;
         }
@@ -414,6 +416,9 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
                 } break;
             }
         }
+
+        state->text[0] = IMG_LoadTexture(renderer, "data/chess.png");
+        state->text[1] = IMG_LoadTexture(renderer, "data/white_play.png");
 
         // initalize board
         for (int j = 0; j < BOARD_HEIGHT; ++j)
@@ -594,7 +599,6 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
 
         if (platform->mouse_right_up && !state->current_selected.set)
         {
-            // TODO: Fix castle undo
             if (!Empty(state->moves))
             {
                 move undo = Pop(state->moves);
@@ -605,7 +609,7 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
                     state->board[0][7] = PIECE_black_rook;
                     state->board[0][5] = PIECE_none;
                 }
-                else if (undo.moved_piece == PIECE_black_king && undo.moved_to_i == 4) 
+                else if (undo.moved_piece == PIECE_black_king && undo.moved_to_i == 2) 
                 {
                     UndoMove(state, undo);
                     state->castle.black_can_castle_left = 1;
@@ -619,7 +623,7 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
                     state->board[7][7] = PIECE_white_rook;
                     state->board[7][5] = PIECE_none;
                 }
-                else if (undo.moved_piece == PIECE_white_king && undo.moved_to_i == 4) 
+                else if (undo.moved_piece == PIECE_white_king && undo.moved_to_i == 2) 
                 {
                     UndoMove(state, undo);
                     state->castle.white_can_castle_left = 1;
