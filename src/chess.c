@@ -2,6 +2,13 @@
 #include "renderer.c"
 #include "ui.c"
 
+internal void UndoMove(game_state *state, move undo)
+{
+    state->board[undo.original_j][undo.original_i] = undo.moved_piece;
+    state->board[undo.moved_to_j][undo.moved_to_i] = undo.taken_piece;
+    state->current_turn = (state->current_turn == TURN_white) ? TURN_black : TURN_white;
+}
+
 internal b32 OppositeColorPiece(move move)
 {
     b32 result = 1;
@@ -269,8 +276,8 @@ internal b32 CheckMoveValidity(game_state *state, move move)
                         }
                     }
                 }
-                if ((diff_i == 1 || diff_i == 0) &&
-                    (diff_j == 0 || diff_j == 1))
+                if ((AbsoluteValue(diff_i) == 1 || AbsoluteValue(diff_i) == 0) &&
+                    (AbsoluteValue(diff_j) == 0 || AbsoluteValue(diff_j) == 1))
                 {
                     if (move.moved_piece == PIECE_white_king)
                     {
@@ -298,15 +305,11 @@ internal void UpdateMenu(SDL_Renderer *renderer, platform *platform, game_state 
 
     ui ui = CreateUI(renderer, platform);
     {
-        if (Button(&ui, v4(100, 100, 200, 100)))
+        v4 rect = v4(WINDOW_WIDTH / 2 - 120, 400, 240, 80);
+        if (Button(&ui, rect))
         {
             state->current_mode = MODE_freeplay;
         }
-
-        f32 slider_value = Slider(&ui, v4(100, 500, 250, 50));
-        RenderFilledRect(renderer, 
-                         v4((int)(slider_value * 255), 100, 100, 255), 
-                         v4(300, 300 * slider_value, 50, 50));
     }
 
 }
@@ -595,9 +598,38 @@ internal void UpdateApp(SDL_Renderer *renderer, platform *platform)
             if (!Empty(state->moves))
             {
                 move undo = Pop(state->moves);
-                state->board[undo.original_j][undo.original_i] = undo.moved_piece;
-                state->board[undo.moved_to_j][undo.moved_to_i] = undo.taken_piece;
-                state->current_turn = (state->current_turn == TURN_white) ? TURN_black : TURN_white;
+                if (undo.moved_piece == PIECE_black_king && undo.moved_to_i == 6) 
+                {
+                    UndoMove(state, undo);
+                    state->castle.black_can_castle_right = 1;
+                    state->board[0][7] = PIECE_black_rook;
+                    state->board[0][5] = PIECE_none;
+                }
+                else if (undo.moved_piece == PIECE_black_king && undo.moved_to_i == 4) 
+                {
+                    UndoMove(state, undo);
+                    state->castle.black_can_castle_left = 1;
+                    state->board[0][0] = PIECE_black_rook;
+                    state->board[0][3] = PIECE_none;
+                }
+                else if (undo.moved_piece == PIECE_white_king && undo.moved_to_i == 6) 
+                {
+                    UndoMove(state, undo);
+                    state->castle.white_can_castle_right = 1;
+                    state->board[7][7] = PIECE_white_rook;
+                    state->board[7][5] = PIECE_none;
+                }
+                else if (undo.moved_piece == PIECE_white_king && undo.moved_to_i == 4) 
+                {
+                    UndoMove(state, undo);
+                    state->castle.white_can_castle_left = 1;
+                    state->board[7][0] = PIECE_white_rook;
+                    state->board[7][3] = PIECE_none;
+                }
+                else
+                {
+                    UndoMove(state, undo);
+                }
             }
 
             platform->mouse_down = 0; 
